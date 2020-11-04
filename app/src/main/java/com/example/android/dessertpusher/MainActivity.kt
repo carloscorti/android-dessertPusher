@@ -18,7 +18,6 @@ package com.example.android.dessertpusher
 
 import android.content.ActivityNotFoundException
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -29,6 +28,11 @@ import androidx.lifecycle.LifecycleObserver
 import com.example.android.dessertpusher.databinding.ActivityMainBinding
 import timber.log.Timber
 
+private const val REVENUE_KEY = "REVENUE_KEY"
+private const val DESSERT_SOLD_KEY = "DESSERT_SOLD_KEY"
+private const val TIMER_KEY = "TIMER_KEY"
+private const val CURRENT_DESSERT_POSITION_KEY = "CURRENT_DESSERT_POSITION_KEY"
+
 class MainActivity : AppCompatActivity(), LifecycleObserver {
 
     private var revenue = 0
@@ -36,6 +40,8 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
 
     // Contains all the views
     private lateinit var binding: ActivityMainBinding
+
+    private lateinit var dessertTimer: DessertTimer
 
     /** Dessert Data **/
 
@@ -67,13 +73,24 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.i("${this.localClassName.toString()}", "log message form onCreate")
+        Timber.i("log message form onCreate")
 
         // Use Data Binding to get reference to the views
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         binding.dessertButton.setOnClickListener {
             onDessertClicked()
+        }
+
+        dessertTimer = DessertTimer(this.lifecycle)
+//        dessertTimer = DessertTimer()
+
+        if (savedInstanceState != null) {
+            Timber.i("entered")
+            revenue = savedInstanceState.getInt(REVENUE_KEY)
+            dessertsSold = savedInstanceState.getInt(DESSERT_SOLD_KEY)
+            dessertTimer.secondsCount = savedInstanceState.getInt(TIMER_KEY)
+            currentDessert = allDesserts[savedInstanceState.getInt(CURRENT_DESSERT_POSITION_KEY)]
         }
 
         // Set the TextViews to the right values
@@ -107,7 +124,7 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
         var newDessert = allDesserts[0]
         for (dessert in allDesserts) {
             if (dessertsSold >= dessert.startProductionAmount) {
-                newDessert = dessert
+               newDessert = dessert
             }
             // The list of desserts is sorted by startProductionAmount. As you sell more desserts,
             // you'll start producing more expensive desserts as determined by startProductionAmount
@@ -153,7 +170,50 @@ class MainActivity : AppCompatActivity(), LifecycleObserver {
 
     override fun onStart() {
         super.onStart()
-        Log.i("${this.localClassName.toString()}", "log message from onStart")
-        Timber.i("log message from onStart Timbre made")
+//        Log.i("${this.localClassName.toString()}", "log message from onStart")
+        Timber.i("log message from onStart")
+//        dessertTimer.startTimer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Timber.i("log message from onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Timber.i("log message from onPause")
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Timber.i("log message from onDestroy")
+
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Timber.i("log message from onRestart")
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Timber.i("log message from onStop")
+//        dessertTimer.stopTimer()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(REVENUE_KEY, revenue)
+        outState.putInt(DESSERT_SOLD_KEY, dessertsSold)
+        outState.putInt(TIMER_KEY, dessertTimer.secondsCount)
+        outState.putInt(CURRENT_DESSERT_POSITION_KEY, allDesserts.indexOf(currentDessert))
+        Timber.i("onSaveInstanceState called")
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
     }
 }
